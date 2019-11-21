@@ -1,148 +1,57 @@
-#include <mysql/mysql.h>
 #include <istream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-// For include mysql header file
-// to install libmysqlclient-dev or default-libmysqlclient-dev
+#include <mysql/mysql.h>
 
-MYSQL_RES *res;
-MYSQL_ROW row;
-MYSQL *conn;
+int main(){
+        MYSQL *conn;
+        MYSQL_RES *res;
+        MYSQL_ROW row;
 
- void errorMsg(char *errMsg)
-{
-        printf("t%s",errMsg);
-        printf("nntError Meassage : %sn", mysql_error(conn));
-}
-
-int runQuery(const char *query)
-{
-        if(mysql_query(conn, query)) {
-                printf("MySQL Query Excute failed");
-                return -1;
-        }
-
-        res = mysql_store_result(conn);
-        return 0;
-}
-
-int fetchRow(void)
-{
-        if(res) {
-                row = mysql_fetch_row(res);
-                if(!row) {
-                        printf("MySQL Fetch failed");
-                        return -1;
-                }
-                return 0;
-        }
-        printf("MySQL Query Result Null");
-        return -2;
-}
-
-void fetchfieldbyID(int id, char *buffer, int len)
-{
-        if(row[id]) {
-                strncpy(buffer, row[id], len);
-        } else {
-                printf("MySQL Query Result Null");
-        }
-}
-
-void fetchfieldbyName(const char *name, char *buffer, int len)
-{
-        MYSQL_FIELD *fields;
-        int num_fields;
-        int i;
-
-        if(res) {
-                num_fields = mysql_num_fields(res);
-                fields = mysql_fetch_fields(res);
-
-                for(i = 0; i < num_fields; i++) {
-                        if(!strcmp(fields[i].name, name)) {
-                                if(row[i]) {
-                                    strncpy(buffer, row[i], len);
-                                    return;
-                                }
-                        }
-                }
-
-        } else {
-                printf("MySQL Query Result Null");
-        }
-}
-
-int connectDB(const char* server,const char* user, const char* password, const char* database)
-{
-        conn = mysql_init(NULL);
-        if (conn == NULL) {
-                printf("MySQL init fail");
-                return -1;
-        }
-        if(!mysql_real_connect(conn, server,
-           user, password, database, 3306, (char *)NULL, 0)) {
-                printf("MySQL connect fail");
-                return -2;
-        }
-        return 0;
-
-}
-
-int connectDB2(void)
-{
-        const char *server = "10.100.111.52";
-        const char *user = "root";
-        const char *password = "ccit2019";
+        const char *server = "10.100.111.52";                            //혹은 ip
+        const char *user = "dbadmin";
+        const char *password = "CCITdudgns23!@";
         const char *database = "custom";
 
-        conn = mysql_init(NULL);
-        if (conn == NULL) {
-                printf("MySQL init fail");
-                return -1;
+        if( !(conn = mysql_init((MYSQL*)NULL))){        //초기화 함수
+                printf("init fail\n");
+                exit(1);
         }
-        if(!mysql_real_connect(conn, server,
-           user, password, database, 3306, (char *)NULL, 0)) {
-                printf("MySQL connect fail");
-                return -2;
+
+        printf("mysql_init sucsess.\n");
+
+        if(!mysql_real_connect(conn, server, user, password, NULL, 3306, NULL, 0)){
+                printf("connect error.\n");     //DB접속 (MYSQL*, host, id, pw, null, port, 0)
+                exit(1);
         }
-        return 0;
 
-}
+        printf("mysql_real_connect suc.\n");
 
-void closeDB(void)
-{
-        if (res)
-                mysql_free_result(res);
+        if(mysql_select_db(conn, database) != 0){
+                mysql_close(conn);
+                printf("select_db fail.\n");
+                exit(1);
+        }
+        printf("select mydb suc.\n");
+
+
+
+        //printf("%d", mysql_query(conn,"select * from info" ));   //성공시 0리턴 (false)
+
+        if(mysql_query(conn,"select * from info" )){
+                printf("query fail\n");
+                exit(1);
+        }
+
+        printf("query sucsess\n");
+
+        res = mysql_store_result(conn);                 //쿼리에 대한 결과를 row에 저장
+        printf("res suceese\n");
+
+
+
+        while( (row=mysql_fetch_row(res))!=NULL){
+                printf("%s %s %s\n", row[0], row[1], row[2]);       //이전과 같이 디비테이블을 만들었다면 id와 패스워드값이 나온다.
+        }
+
         mysql_close(conn);
-}
-
-int main() {
-    printf("Start Login process!!\n");
-
-    const char *db_id = "root";
-    const char *db_pw = "ccit2019";
-    const char *server = "10.100.111.52";
-    const char *database = "custom"; // DB name
-
-    const char* id = "dd";
-    const char* passwd = "bb";
-
-    int rt = 0;
-
-    if (connectDB(server, db_id, db_pw, database) < 0) {
-        return rt;
-    }
-    const char *Query = "select user_id, user_pw from test";
-    if (runQuery(Query) < 0) {
-        return rt;
-    }
-
-    while((row = mysql_fetch_row(res)) != NULL) {
-        printf("%s %s\n", row[0], row[1]);
-    }
-    closeDB();
-
-    return 0;
+return 0;
 }
