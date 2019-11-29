@@ -5,40 +5,8 @@ CONFIG -= qt
 
 SOURCES += \
         main.cpp
-LIBS += -lmysqlclient
 
+HEADERS += \
+    radiotap_header.h
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+LIBS += -lmysqlclient -lpcap -lpthread
