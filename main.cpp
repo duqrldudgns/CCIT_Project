@@ -72,6 +72,13 @@ int runQuery(char pwr,uint8_t mac_addr[6], std::mutex& mutex){
     return 0;
 }
 
+void setting(uint8_t subtype, char pwr, uint8_t *station){
+    printf("----------------%02x Data catch !!----------------\n", subtype);
+
+    std::mutex mutex;
+    runQuery(pwr,station,ref(mutex));
+}
+
 int savedata(char* argv){
     char* dev = argv;
     char errbuf[PCAP_ERRBUF_SIZE];
@@ -93,16 +100,24 @@ int savedata(char* argv){
         if(rh->it_length == 13 || rh->it_length == 14) continue;
 
         //Data frame
-        if (ih->type_subtype == PROBE_REQUEST){
-            printf("------------Probe Request catch !!------------\n");
-            char pwr;
-            uint8_t station[6];
-            pwr = rh->it_antenna_signal;
-            for (int i=0;i<6;i++) station[i] = ih->add2[i];
-
-            std::mutex mutex;
-            runQuery(pwr,station,ref(mutex));
+        if(ih->type_subtype == QOS_DATA){
+            switch (ih->flags & 0x03) {
+            case 1:{    //flag = T, 0001
+                setting(ih->type_subtype, rh->it_antenna_signal, ih->add2);
+                break;
+            }
+            case 2:{    //flag = F, 0010
+                setting(ih->type_subtype, rh->it_antenna_signal, ih->add2);
+                break;
+            }
+            }
         }
+        else if(ih->type_subtype == PROBE_REQUEST|| ih->type_subtype == NULL_FUNCTION
+                || ih->type_subtype == QOS_NULL_FUNCTION || ih->type_subtype == AUTHENTICATION || ih->type_subtype == ACTION){
+            setting(ih->type_subtype, rh->it_antenna_signal, ih->add2);
+        }
+
+
     }
     pcap_close(handle);
     return 0;

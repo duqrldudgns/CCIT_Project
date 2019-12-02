@@ -37,7 +37,7 @@ struct radiotap_header {
         uint8_t        it_data_Rate;
         uint16_t       it_channel_frequency;
         uint16_t       it_channel_flags;
-        uint8_t        it_antenna_signal;
+        char        it_antenna_signal;
         uint8_t        it_antenna;
         uint16_t       it_RX_flags;
 };
