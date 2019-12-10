@@ -25,7 +25,7 @@ exit;
 ?>
 
 <?php
-$sql = "SELECT lecture_name FROM Subject WHERE lecture_name = '".$_POST['lecture_name']."'";
+$sql = "SELECT lecture_name, Subject_time.num, year, day, start_time, finish_time FROM Subject_time LEFT JOIN Subject ON Subject_num = Subject.num WHERE Subject_num = ".$_POST['Subject_num']."";
 
 $result = mysqli_query($conn,$sql);
 
@@ -39,11 +39,34 @@ echo "No rows found, nothing to print so am exiting";
 exit;
 }
 
-echo "<table>";
+//echo "<table>";
 //echo "<tr><td>id</td><td>name</td><td>age</td></tr>";
 while ($row = mysqli_fetch_assoc($result)) {
-	echo "<tr><td>{$row['lecture_name']}</td><td>{$row['custom_name']}</td><td>{$row['custom_age']}</td></tr>";
+	echo "{$row['year']}-{$row['day']} {$row['start_time']} ~ {$row['year']}-{$row['day']} {$row['finish_time']}<br/>";
+	//	echo "<tr><td>{$row['Subject_num']}</td><td>{$row['custom_name']}</td><td>{$row['custom_age']}</td></tr>";
 }
-echo "</table>";
+//echo "</table>";
 mysqli_free_result($result);
 ?>
+    <form action="list.php" method="post">
+      <p>  시작 시간 : <input type="text" name="start_time"></p>
+      <p>끝나는 시간 : <input type="text" name="finish_time"></p>
+      <p><input type="submit"></p>
+    </form>
+
+<form action="list_onetime.php" method="post">
+<h1>한번이라도 패킷잡힌 친구 확인 </h1>     
+<p>  시작 시간 : <input type="text" name="start_time"></p>
+      <p>끝나는 시간 : <input type="text" name="finish_time"></p>
+      <p><input type="submit"></p>
+    </form>
+
+<form action="list_student_id.php" method="post">
+      <p>  시작 시간 : <input type="text" name="start_time"></p>
+      <p>끝나는 시간 : <input type="text" name="finish_time"></p>
+      <p>  찾을 학번 : <input type="text" name="student_id"></p>
+      <p><input type="submit"></p>
+    </form>
+
+</body>
+</html>
