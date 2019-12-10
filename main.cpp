@@ -1,4 +1,4 @@
-#include <mysql/mysql.h>
+﻿#include <mysql/mysql.h>
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,6 +24,8 @@ static MYSQL_FIELD *fields;             //like arr
 static u_int num_fields;                //fields count
 static int cnt = 0;
 static int ch = 1;
+static char *insert_query = (char *)malloc(sizeof(char));
+static int query_len=22;
 
 void errorMsg(const char *errMsg){
     printf("lately Error Meassage : %s \n", mysql_error(conn));
@@ -37,7 +39,6 @@ int connectDB(const char* server,const char* user, const char* password, const c
         return -1;
     }
 
-
     if(!mysql_real_connect(conn, server, user, password, database, 3306, nullptr, 0)) {
         errorMsg("MySQL_real_connect fail");
         return -2;
@@ -47,36 +48,49 @@ int connectDB(const char* server,const char* user, const char* password, const c
     return 0;
 }
 
-int runQuery(char pwr,uint8_t mac_addr[6], std::mutex& mutex){
-    cnt++;
-    char *insert_query = (char *)malloc(sizeof(char) * 70);
+int runQuery(std::mutex& mutex){
+    while(true){
+        sleep(5);
+        mutex.lock();
 
-    sprintf(insert_query, "insert INTO Log VALUES(NULL,'");
+        sprintf(insert_query + query_len-2, "; ");
 
-    for(int i=0 ; i<6; i++){
-    sprintf(insert_query + 29 +(i*2), "%02x", mac_addr[i]);
+        if(mysql_query(conn, insert_query)) {
+            errorMsg("MySQL insert_Query empty");
+        }
+        else{
+            printf("\n\n-------cnt : %d, query_len : %d, insert query soccess!!!-------\n\n", cnt, query_len);
+            printf("%s",insert_query);
+            printf("\n\n---------------------------------------------------------------\n\n");
+        }
+
+        cnt = 0;
+        memset(insert_query, 0, sizeof(char));
+        sprintf(insert_query, "insert INTO Log VALUES");
+        query_len=22;
+
+        mutex.unlock();
     }
-
-    sprintf(insert_query + 41,"','%d', CURRENT_TIMESTAMP);", pwr);
-
-    printf("%s",insert_query);
-    printf("\n");
-
-    mutex.lock();
-    if(mysql_query(conn, insert_query)) {
-        errorMsg("MySQL insert_Query Excute fail");
-        return -1;
-    }
-     mutex.unlock();
-     printf("-------cnt : %d, insert query soccess!!!-------\n\n", cnt);
-    return 0;
 }
 
-void setting(uint8_t subtype, char pwr, uint8_t *station){
-    printf("----------------%02x Data catch !!----------------\n", subtype);
+void setting(uint8_t subtype, char pwr, uint8_t *station, std::mutex& mutex){
+    cnt++;
+    printf("\n cnt : %d, %02x Data catch !!", cnt, subtype);
+    mutex.lock();
 
-    std::mutex mutex;
-    runQuery(pwr,station,ref(mutex));
+    sprintf(insert_query + query_len, "(NULL,'");
+    query_len+=7;
+
+    for(int i=0 ; i<6; i++){
+        sprintf(insert_query + query_len +(i*2), "%02x", station[i]);
+    }
+    query_len+=12;
+
+    sprintf(insert_query + query_len,"','%d', CURRENT_TIMESTAMP),\n", pwr);
+    if (pwr > char(0xf6)) query_len=query_len+26+2;
+    else query_len=query_len+26+3;
+
+    mutex.unlock();
 }
 
 int savedata(char* argv){
@@ -98,23 +112,24 @@ int savedata(char* argv){
         struct ieee80211_header *ih = (struct ieee80211_header *)(packet + rh->it_length);
         //printf("%u bytes captured \n", header->caplen);
         if(rh->it_length == 13 || rh->it_length == 14) continue;
+        std::mutex mutex;
 
         //Data frame
         if(ih->type_subtype == QOS_DATA){
             switch (ih->flags & 0x03) {
             case 1:{    //flag = T, 0001
-                setting(ih->type_subtype, rh->it_antenna_signal, ih->add2);
+                setting(ih->type_subtype, rh->it_antenna_signal, ih->add2,ref(mutex));
                 break;
             }
             case 2:{    //flag = F, 0010
-                setting(ih->type_subtype, rh->it_antenna_signal, ih->add2);
+                setting(ih->type_subtype, rh->it_antenna_signal, ih->add2,ref(mutex));
                 break;
             }
             }
         }
         else if(ih->type_subtype == PROBE_REQUEST|| ih->type_subtype == NULL_FUNCTION
                 || ih->type_subtype == QOS_NULL_FUNCTION || ih->type_subtype == AUTHENTICATION || ih->type_subtype == ACTION){
-            setting(ih->type_subtype, rh->it_antenna_signal, ih->add2);
+            setting(ih->type_subtype, rh->it_antenna_signal, ih->add2,ref(mutex));
         }
 
 
@@ -143,32 +158,37 @@ void closeDB(){
 }
 
 void usage() {
-    printf("syntax: mysql_insert <interface>\n");
-    printf("sample: mysql_insert wlan0\n");
+    printf("syntax: mysql_insert <interface> server_ip db_id db_pw db_name channel\n");
+    printf("sample: mysql_insert wlan0 192.168.0.5 root toor project 13\n");
 }
 
 int main(int argc, char* argv[]) {
-    if (argc != 2) {
+    if (argc < 6) {                //ch check add
         usage();
         return -1;
     }
     char* dev = argv[1];
 
-    const char *server = "10.100.111.52";
-    const char *db_id = "dbadmin";
-    const char *db_pw = "CCITdudgns23!@";
-    const char *database = "Project";        // DB name
+    const char *server = argv[2];
+    const char *db_id = argv[3];
+    const char *db_pw = argv[4];
+    const char *database = argv[5];        // DB name
+    memset(insert_query, 0, sizeof(char));
+    sprintf(insert_query, "insert INTO Log VALUES");
 
     if (connectDB(server, db_id, db_pw, database)<0) {
         closeDB();
         return 0;
     }
 
+    std::mutex mutex;
     thread t1(savedata,dev);
     thread t2(ch_hopping,dev);
+    thread t3(runQuery,ref(mutex));
 
     t1.join();
     t2.join();
+    t3.join();
 
     closeDB();
     return 0;
