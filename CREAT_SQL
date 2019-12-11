@@ -1,32 +1,41 @@
 CREATE DATABASE `Project` CHARACTER SET utf8 COLLATE utf8_general_ci;
 
 
-CREATE TABLE `Project`.`Member` ( 
-​`num` INT(1) NOT NULL AUTO_INCREMENT ,
-​`student_id` INT(1) NOT NULL ,
-​ PRIMARY KEY (`num`), UNIQUE (`student_id`))
-​ ENGINE = InnoDB CHARSET=utf8 COLLATE utf8_general_ci;​
-​
-​
-CREATE TABLE `Project`.`Device` ( 
-​`num` INT(1) NOT NULL AUTO_INCREMENT , 
-​`mac_addr` CHAR(17) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,​
-​`device_kind` CHAR(20) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT 'smartphone' COMMENT 'phone or notebook' ,
-`Member_num` INT(1) NOT NULL ,​
-​ PRIMARY KEY (`num`), UNIQUE (`mac_addr`))
-​ ENGINE = InnoDB CHARSET=utf8 COLLATE utf8_general_ci;​
-​
-​
-CREATE TABLE `Project`.`Subject` ( 
-​`num` INT(1) NOT NULL AUTO_INCREMENT , 
-​`lecture_name` VARCHAR(30) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL , 
-​`lecture_id` CHAR(8) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL , 
-​`year` INT(1) NOT NULL , 
-​PRIMARY KEY (`num`))
-​ ENGINE = InnoDB CHARSET=utf8 COLLATE utf8_general_ci;​
-​
-​
-CREATE TABLE `Project`.`Log` ( 
-​`Device_mac` CHAR(17) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL , 
-​`time` CHAR(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ) 
- ENGINE = InnoDB CHARSET=utf8 COLLATE utf8_general_ci;​
+CREATE TABLE `Project`.`Member` ( `num` INT(1) NOT NULL AUTO_INCREMENT ,
+`student_id` CHAR(8) NOT NULL ,
+`name` VARCHAR(5) NOT NULL ,
+`grade` TINYINT(1) NOT NULL ,
+`department` VARCHAR(10) NOT NULL ,
+PRIMARY KEY (`num`), UNIQUE (`student_id`))
+ENGINE = InnoDB CHARSET=utf8 COLLATE utf8_general_ci;
+
+CREATE TABLE `Project`.`Device` ( `num` INT(1) NOT NULL AUTO_INCREMENT ,
+`mac_addr` CHAR(12) NOT NULL ,
+`device_kind` VARCHAR(10) NOT NULL DEFAULT 'phone' ,
+`Member_student_id` CHAR(8) NOT NULL ,
+PRIMARY KEY (`num`), UNIQUE (`mac_addr`))
+ENGINE = InnoDB CHARSET=utf8 COLLATE utf8_general_ci;
+
+CREATE TABLE `Project`.`Subject` ( `num` INT(1) NOT NULL AUTO_INCREMENT ,
+`lecture_name` VARCHAR(30) NOT NULL ,
+`lecture_room` CHAR(7) NOT NULL ,
+`lecture_id` CHAR(8) NOT NULL ,
+PRIMARY KEY (`num`), UNIQUE (`lecture_id`))
+ENGINE = InnoDB CHARSET=utf8 COLLATE utf8_general_ci;
+
+CREATE TABLE `Project`.`Subject_time` ( `num` INT(1) NOT NULL AUTO_INCREMENT ,
+`year` SMALLINT(1) NOT NULL ,
+`day` CHAR(5) NOT NULL ,
+`start_time` CHAR(8) NOT NULL ,
+`finish_time` CHAR(8) NOT NULL ,
+`Subject_num` INT(1) NOT NULL ,
+PRIMARY KEY (`num`)) 
+ENGINE = InnoDB CHARSET=utf8 COLLATE utf8_general_ci;
+
+CREATE TABLE `Project`.`Log` ( `num` INT(1) NOT NULL AUTO_INCREMENT ,
+`mac_addr` CHAR(12) NOT NULL ,
+`lecture_room` CHAR(7) NOT NULL ,
+`pwr` TINYINT(1) NOT NULL ,
+`time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+PRIMARY KEY (`num`))
+ENGINE = InnoDB CHARSET=utf8 COLLATE utf8_general_ci;
