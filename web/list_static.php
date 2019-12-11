@@ -13,7 +13,7 @@ td{border:1px solid gray;padding:5px;}
 <body>
 <?php
 
-$conn = mysqli_connect("localhost", "root", "ccit2019","Project");
+$conn = mysqli_connect("116.35.231.186", "duqrljyh", "CCITgnsl12!@","Project");
 mysqli_query('SET NAMES utf8');
 if (!$conn) {
 echo "Unable to connect to DB: " . mysqli_error();
@@ -21,9 +21,7 @@ exit;
 }
 
 $sql = "select *
-from Log
-where time >= '2019-12-01 17:00:00'
-and time <= '2019-12-30 17:30:00'";
+from Log";
 
 $result = mysqli_query($conn,$sql);
 

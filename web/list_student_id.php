@@ -12,25 +12,37 @@ td{border:1px solid gray;padding:5px;}
 </head>
 <body>
 <?php
-
-$conn = mysqli_connect("localhost", "root", "ccit2019","Project");
+$conn = mysqli_connect("localhost", "dbadmin", "CCITdudgns23!@","Project");
 mysqli_query('SET NAMES utf8');
 if (!$conn) {
 echo "Unable to connect to DB: " . mysqli_error();
 exit;
 }
 
+if($_POST['student_id']){
 $sql = "SELECT Log.num, Log.mac_addr, pwr, time, device_kind, student_id, grade, name, department FROM Log 
 	LEFT JOIN Device ON Log.mac_addr = Device.mac_addr 
 	LEFT JOIN Member ON Device.Member_student_id = Member.student_id 
 where time >= '".$_POST['start_time']."' 
 and time <= '".$_POST['finish_time']."'
 and Member_student_id = '".$_POST['student_id']."'";
+}
+else if($_POST['mac_addr']) {
+$sql = "SELECT Log.num, Log.mac_addr, pwr, time, device_kind, student_id, grade, name, department FROM Log 
+	LEFT JOIN Device ON Log.mac_addr = Device.mac_addr 
+	LEFT JOIN Member ON Device.Member_student_id = Member.student_id 
+where time >= '".$_POST['start_time']."' 
+and time <= '".$_POST['finish_time']."'
+and Log.mac_addr = '".$_POST['mac_addr']."'";
+}
+else{
+$sql = "SELECT Log.num, Log.mac_addr, pwr, time, device_kind, student_id, grade, name,  department FROM Log LEFT JOIN Device ON Log.mac_addr = Device.mac_addr LEFT JOIN Member ON Device.Member_student_id = Member.student_id where time >= '".$_POST['start_time']."' and time <= '".$_POST['finish_time']."'";
+}
 
 $result = mysqli_query($conn,$sql);
 
 if (!$result) {
-echo "Could not successfully run query ($sql) from DB: " . mysqli_error();
+echo "Could not successfully run query from DB: ";
 exit;
 }
 

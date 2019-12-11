@@ -30,7 +30,7 @@ $sql = "SELECT lecture_name, Subject_time.num, year, day, start_time, finish_tim
 $result = mysqli_query($conn,$sql);
 
 if (!$result) {
-echo "Could not successfully run query ($sql) from DB: " . mysqli_error();
+echo "Could not successfully run query from DB: ";
 exit;
 }
 
@@ -39,32 +39,29 @@ echo "No rows found, nothing to print so am exiting";
 exit;
 }
 
-//echo "<table>";
-//echo "<tr><td>id</td><td>name</td><td>age</td></tr>";
+
+echo "<table>";
+echo "<tr><td>start time</td><td>finish time</td></tr>";
 while ($row = mysqli_fetch_assoc($result)) {
-	echo "{$row['year']}-{$row['day']} {$row['start_time']} ~ {$row['year']}-{$row['day']} {$row['finish_time']}<br/>";
-	//	echo "<tr><td>{$row['Subject_num']}</td><td>{$row['custom_name']}</td><td>{$row['custom_age']}</td></tr>";
+	echo "<tr><td>{$row['year']}-{$row['day']} {$row['start_time']}</td> <td>{$row['year']}-{$row['day']} {$row['finish_time']}</td></tr>";
 }
-//echo "</table>";
+echo "</table>";
 mysqli_free_result($result);
 ?>
-    <form action="list.php" method="post">
-      <p>  시작 시간 : <input type="text" name="start_time"></p>
-      <p>끝나는 시간 : <input type="text" name="finish_time"></p>
-      <p><input type="submit"></p>
-    </form>
 
-<form action="list_onetime.php" method="post">
-<h1>한번이라도 패킷잡힌 친구 확인 </h1>     
-<p>  시작 시간 : <input type="text" name="start_time"></p>
-      <p>끝나는 시간 : <input type="text" name="finish_time"></p>
-      <p><input type="submit"></p>
-    </form>
 
 <form action="list_student_id.php" method="post">
       <p>  시작 시간 : <input type="text" name="start_time"></p>
       <p>끝나는 시간 : <input type="text" name="finish_time"></p>
       <p>  찾을 학번 : <input type="text" name="student_id"></p>
+      <p>  찾을 mac : <input type="text" name="mac_addr"></p>
+      <p><input type="submit"></p>
+    </form>
+
+<form action="list_onetime.php" method="post">
+<h1> 있기라도한가 체크하기(패킷한번이라도잡혔나) </h1>     
+<p>  시작 시간 : <input type="text" name="start_time"></p>
+      <p>끝나는 시간 : <input type="text" name="finish_time"></p>
       <p><input type="submit"></p>
     </form>
 
