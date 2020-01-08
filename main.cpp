@@ -5,6 +5,7 @@
 #include <string.h>
 #include <time.h>
 #include <pcap.h>
+#include <map>
 #include <unistd.h>
 #include <thread>
 #include <mutex>
@@ -17,12 +18,13 @@
 
 using namespace std;
 
+static map<mac_key, data_info> d;
+static map<mac_key, data_info>::iterator d_iter;
 static MYSQL *conn;                     //database connect
 static MYSQL_RES *res;                  //data save
 static MYSQL_ROW row;                   //data arr sort
 static MYSQL_FIELD *fields;             //like arr
 static u_int num_fields;                //fields count
-static int cnt = 0;
 static int ch = 1;
 static char *insert_query = (char *)malloc(sizeof(char));
 static int query_len=22;
@@ -48,49 +50,59 @@ int connectDB(const char* server,const char* user, const char* password, const c
     return 0;
 }
 
-int runQuery(std::mutex& mutex){
-    while(true){
-        sleep(5);
-        mutex.lock();
+int runQuery(){
+    sprintf(insert_query + query_len-2, "; ");
 
-        sprintf(insert_query + query_len-2, "; ");
-
-        if(mysql_query(conn, insert_query)) {
-            errorMsg("MySQL insert_Query empty");
-        }
-        else{
-            printf("\n\n-------cnt : %d, query_len : %d, insert query soccess!!!-------\n\n", cnt, query_len);
-            printf("%s",insert_query);
-            printf("\n\n---------------------------------------------------------------\n\n");
-        }
-
-        cnt = 0;
-        memset(insert_query, 0, sizeof(char));
-        sprintf(insert_query, "insert INTO Log VALUES");
-        query_len=22;
-
-        mutex.unlock();
+    if(mysql_query(conn, insert_query)) {
+        errorMsg("MySQL insert_Query empty");
     }
+    else{
+        printf("\n\n-------query_len : %d, insert query soccess!!!-------\n\n", query_len);
+        printf("%s",insert_query);
+        printf("\n\n---------------------------------------------------------------\n\n");
+    }
+
+    d.clear();
+    memset(insert_query, 0, sizeof(char));
+    sprintf(insert_query, "insert INTO Log VALUES");
+    query_len=22;
+
+    return 0;
 }
 
-void setting(uint8_t subtype, char pwr, uint8_t *station, std::mutex& mutex){
-    cnt++;
-    printf("\n cnt : %d, %02x Data catch !!", cnt, subtype);
-    mutex.lock();
+void setting(char* lecture_room, std::mutex& mutex){
+    while(true){
+        sleep(10);
+        mutex.lock();
+        for( d_iter= d.begin(); d_iter != d.end(); d_iter++){
 
-    sprintf(insert_query + query_len, "(NULL,'");
-    query_len+=7;
+            sprintf(insert_query + query_len, "(NULL,'");
+            query_len+=7;
 
-    for(int i=0 ; i<6; i++){
-        sprintf(insert_query + query_len +(i*2), "%02x", station[i]);
+            mac_key mac;
+            mac = d_iter->first;
+            uint8_t *ptr = reinterpret_cast<uint8_t*>(&mac);
+
+            for(int i=0 ; i<6; i++){
+                sprintf(insert_query + query_len +(i*2), "%02x", ptr[i]);
+            }
+            query_len+=12;
+
+            sprintf(insert_query + query_len,"','%s','%d','%d', CURRENT_TIMESTAMP),\n",lecture_room, (*d_iter).second.pwr, (*d_iter).second.frames);
+
+            query_len=query_len+strlen(lecture_room)+3;
+
+            if ((*d_iter).second.pwr > char(0xf6)) query_len=query_len+26+2;
+            else query_len=query_len+26+3;
+
+            if ((*d_iter).second.frames < 10) query_len+=4;
+            else if ((*d_iter).second.frames < 100) query_len+=5;
+            else query_len+=6;
+
+        }
+        runQuery();
+        mutex.unlock();
     }
-    query_len+=12;
-
-    sprintf(insert_query + query_len,"','%d', CURRENT_TIMESTAMP),\n", pwr);
-    if (pwr > char(0xf6)) query_len=query_len+26+2;
-    else query_len=query_len+26+3;
-
-    mutex.unlock();
 }
 
 int savedata(char* argv){
@@ -115,23 +127,44 @@ int savedata(char* argv){
         std::mutex mutex;
 
         //Data frame
-        if(ih->type_subtype == QOS_DATA){
-            switch (ih->flags & 0x03) {
-            case 1:{    //flag = T, 0001
-                setting(ih->type_subtype, rh->it_antenna_signal, ih->add2,ref(mutex));
-                break;
-            }
-            case 2:{    //flag = F, 0010
-                setting(ih->type_subtype, rh->it_antenna_signal, ih->add2,ref(mutex));
-                break;
-            }
-            }
-        }
-        else if(ih->type_subtype == PROBE_REQUEST|| ih->type_subtype == NULL_FUNCTION
+        if(/*ih->type_subtype == QOS_DATA ||*/ ih->type_subtype == PROBE_REQUEST|| ih->type_subtype == NULL_FUNCTION
                 || ih->type_subtype == QOS_NULL_FUNCTION || ih->type_subtype == AUTHENTICATION || ih->type_subtype == ACTION){
-            setting(ih->type_subtype, rh->it_antenna_signal, ih->add2,ref(mutex));
+
+            mutex.lock();
+            auto d_iter = d.find(ih->add2);             //station
+            if(d_iter ==d.end()){
+                data_info d_info;
+                d_info.pwr = rh->it_antenna_signal;     //PWR
+                d_info.frames=1;                        //count
+                d_info.flags= ih->flags;
+
+                d[ih->add2] = d_info;
+            }
+            else{
+                (*d_iter).second.frames ++;
+                if((*d_iter).second.pwr < rh->it_antenna_signal) (*d_iter).second.pwr = rh->it_antenna_signal;
+            }
+            mutex.unlock();
         }
 
+        if(ih->type_subtype == DATA){
+
+            mutex.lock();
+            auto d_iter = d.find(ih->add3);             //station
+            if(d_iter ==d.end()){
+                data_info d_info;
+                d_info.pwr = rh->it_antenna_signal;     //PWR
+                d_info.frames=1;                        //count
+                d_info.flags= ih->flags;
+
+                d[ih->add2] = d_info;
+            }
+            else{
+                (*d_iter).second.frames ++;
+                if((*d_iter).second.pwr < rh->it_antenna_signal) (*d_iter).second.pwr = rh->it_antenna_signal;
+            }
+            mutex.unlock();
+        }
 
     }
     pcap_close(handle);
@@ -183,8 +216,8 @@ int main(int argc, char* argv[]) {
 
     std::mutex mutex;
     thread t1(savedata,dev);
-    thread t2(ch_hopping,dev);
-    thread t3(runQuery,ref(mutex));
+    thread t2(setting,argv[6],ref(mutex));
+    thread t3(ch_hopping,dev);
 
     t1.join();
     t2.join();

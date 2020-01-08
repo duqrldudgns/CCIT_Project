@@ -62,9 +62,9 @@ struct ieee80211_header {
             add2 = Transmitter, Source, STA
             add3 = Destination
           */
-        uint8_t add1[6];           //6byte
-        uint8_t add2[6];
-        uint8_t add3[6];
+        mac_key add1;           //6byte
+        mac_key add2;
+        mac_key add3;
         uint16_t       fragment_sequence;
 };
 
@@ -83,6 +83,7 @@ struct beacon_info {    //Beacon frame, Probe Response, Data, Qos Data
 struct data_info {
     uint8_t type=0;
     uint8_t bssid[6];
+    uint8_t        flags;
     char pwr=0;
     int frames=0;
     int probe_len=0;
