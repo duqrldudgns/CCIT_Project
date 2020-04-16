@@ -36,6 +36,7 @@ CREATE TABLE `Project`.`Log` ( `num` INT(1) NOT NULL AUTO_INCREMENT ,
 `mac_addr` CHAR(12) NOT NULL ,
 `lecture_room` CHAR(7) NOT NULL ,
 `pwr` TINYINT(1) NOT NULL ,
+`count` INT(1) NOT NULL ,
 `time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
 PRIMARY KEY (`num`))
 ENGINE = InnoDB CHARSET=utf8 COLLATE utf8_general_ci;
