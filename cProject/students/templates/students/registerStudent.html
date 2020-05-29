@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+
+	<title>Young</title>
+</head>
+<body>
+
+<p>Register Student</p>
+
+<form action ="{% url 'students:regCon' %}" method="post">
+{% csrf_token %}
+name : <input type="text" name="name"></br>
+grade : <input type="text" name="grade"></br>
+student_id : <input type="text" name="student_id"></br>
+mac_addr : <input type="text" name="mac_addr"></br>
+department : <input type="text" name="department"></br>
+<input type="submit" name="Register"></br>
+</form>
+
+</body>
+</html>
