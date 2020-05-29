@@ -12,16 +12,18 @@ td{border:1px solid gray;padding:5px;}
 </head>
 <body>
 <?php
-
-
-$conn = mysqli_connect("localhost", "dbadmin", "CCITdudgns23!@","Project");
+$conn = mysqli_connect("116.35.231.186", "duqrljyh", "CCITgnsl12!@","Project");
 mysqli_query('SET NAMES utf8');
 if (!$conn) {
 echo "Unable to connect to DB: " . mysqli_error();
 exit;
 }
 
-$sql = "SELECT Log.num, Log.mac_addr, pwr, time, device_kind, student_id, grade, name,  department FROM Log LEFT JOIN Device ON Log.mac_addr = Device.mac_addr LEFT JOIN Member ON Device.Member_student_id = Member.student_id where time >= '".$_POST['start_time']."' and time <= '".$_POST['finish_time']."'";
+$sql = "SELECT Log.num, Log.mac_addr, pwr, time, device_kind, student_id, grade, name,  department FROM Log 
+	LEFT JOIN Device ON Log.mac_addr = Device.mac_addr 
+	LEFT JOIN Member ON Device.Member_student_id = Member.student_id 
+where time >= '".$_POST['start_time']."' 
+and time <= '".$_POST['finish_time']."'";
 
 $result = mysqli_query($conn,$sql);
 

@@ -10,7 +10,7 @@ td{border:1px solid gray;padding:5px;}
 <body>
 <?php
 
-$conn = mysqli_connect("localhost", "dbadmin", "CCITdudgns23!@","Project");
+$conn = mysqli_connect("116.35.231.186", "duqrljyh", "CCITgnsl12!@","Project");
 mysqli_query('SET NAMES utf8');
 if (!$conn) {
 echo "Unable to connect to DB: " . mysqli_error();
