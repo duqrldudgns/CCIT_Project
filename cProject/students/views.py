@@ -2,7 +2,10 @@ from django.http import JsonResponse
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.shortcuts import render
-from students.models import Student
+from students.models import *
+
+from django.core import serializers
+from django.http import HttpResponse
 
 # Create your views here.
 def regStudent(request):
@@ -25,8 +28,14 @@ def reaStudentAll(request):
     context = {'student_list': qs}
     return render(request, 'students/readStudents.html', context)
 
-#def jsonTest(request):
-#     return JsonResponse({
-#        'message' : '안녕 파이썬 장고',
-#        'items' : ['파이썬', '장고', 'AWS', 'Azure'],
-#    }, json_dumps_params = {'ensure_ascii': True})
+#test
+def jsonTest(request):
+     return JsonResponse({
+     #   'message' : '출석체크',
+        'items' : ['출석', '지각', '결석'],
+    }, json_dumps_params = {'ensure_ascii': True})
+
+def posts(request):
+    posts = Log.objects.filter(count=1)
+    post_list = serializers.serialize('json', posts)
+    return HttpResponse(post_list, content_type="text/json-comment-filtered")
