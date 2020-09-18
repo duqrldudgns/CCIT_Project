@@ -72,7 +72,7 @@ int runQuery(){
 
 void setting(char* lecture_room, std::mutex& mutex){
     while(true){
-        sleep(10);
+        sleep(300);
         mutex.lock();
         for( d_iter= d.begin(); d_iter != d.end(); d_iter++){
 
@@ -123,7 +123,9 @@ int savedata(char* argv){
         struct radiotap_header *rh = (struct radiotap_header *)packet;
         struct ieee80211_header *ih = (struct ieee80211_header *)(packet + rh->it_length);
         //printf("%u bytes captured \n", header->caplen);
-        if(rh->it_length == 13 || rh->it_length == 14) continue;
+
+	char limit = 0xba; // 0xba = -70
+        if(rh->it_antenna_signal < limit || rh->it_length == 13 || rh->it_length == 14) continue;
         std::mutex mutex;
 
         //Data frame
