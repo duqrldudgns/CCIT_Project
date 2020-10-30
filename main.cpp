@@ -128,15 +128,22 @@ int savedata(char* argv){
         if(rh->it_antenna_signal < limit || rh->it_length == 13 || rh->it_length == 14) continue;
         std::mutex mutex;
 
+	int rssi = 0;
+	    if (rh->it_antenna_signal<127)
+	        rssi= rh->it_antenna_signal -1;
+	    else
+	        rssi= rh->it_antenna_signal -255 -1;
+	    
         //Data frame
         if(/*ih->type_subtype == QOS_DATA ||*/ ih->type_subtype == PROBE_REQUEST|| ih->type_subtype == NULL_FUNCTION
                 || ih->type_subtype == QOS_NULL_FUNCTION || ih->type_subtype == AUTHENTICATION || ih->type_subtype == ACTION){
 
             mutex.lock();
+	    
             auto d_iter = d.find(ih->add2);             //station
             if(d_iter ==d.end()){
                 data_info d_info;
-                d_info.pwr = rh->it_antenna_signal;     //PWR
+		d_info.pwr = rssi;     //PWR    
                 d_info.frames=1;                        //count
                 d_info.flags= ih->flags;
 
@@ -144,7 +151,7 @@ int savedata(char* argv){
             }
             else{
                 (*d_iter).second.frames ++;
-                if((*d_iter).second.pwr < rh->it_antenna_signal) (*d_iter).second.pwr = rh->it_antenna_signal;
+                if((*d_iter).second.pwr < rh->it_antenna_signal) (*d_iter).second.pwr = rssi;
             }
             mutex.unlock();
         }
@@ -155,7 +162,7 @@ int savedata(char* argv){
             auto d_iter = d.find(ih->add3);             //station
             if(d_iter ==d.end()){
                 data_info d_info;
-                d_info.pwr = rh->it_antenna_signal;     //PWR
+                d_info.pwr = rssi;     //PWR
                 d_info.frames=1;                        //count
                 d_info.flags= ih->flags;
 
@@ -163,7 +170,7 @@ int savedata(char* argv){
             }
             else{
                 (*d_iter).second.frames ++;
-                if((*d_iter).second.pwr < rh->it_antenna_signal) (*d_iter).second.pwr = rh->it_antenna_signal;
+                if((*d_iter).second.pwr < rh->it_antenna_signal) (*d_iter).second.pwr = rssi;
             }
             mutex.unlock();
         }
