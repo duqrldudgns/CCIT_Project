@@ -72,7 +72,7 @@ int runQuery(){
 
 void setting(char* lecture_room, std::mutex& mutex){
     while(true){
-        sleep(300);
+        sleep(10);
         mutex.lock();
         for( d_iter= d.begin(); d_iter != d.end(); d_iter++){
 

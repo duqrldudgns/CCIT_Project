@@ -37,7 +37,7 @@ struct radiotap_header {
         uint8_t        it_data_Rate;
         uint16_t       it_channel_frequency;
         uint16_t       it_channel_flags;
-        char        it_antenna_signal;
+        uint8_t        it_antenna_signal;
         uint8_t        it_antenna;
         uint16_t       it_RX_flags;
 };
@@ -71,7 +71,7 @@ struct ieee80211_header {
 #pragma pack(push, 1)
 
 struct beacon_info {    //Beacon frame, Probe Response, Data, Qos Data
-    char pwr=0;
+    int pwr=0;
     int beacons=0;
     int data=0;
     int channel=0;
@@ -84,7 +84,7 @@ struct data_info {
     uint8_t type=0;
     uint8_t bssid[6];
     uint8_t        flags;
-    char pwr=0;
+    int pwr=0;
     int frames=0;
     int probe_len=0;
     uint8_t probe[32];
