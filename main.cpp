@@ -22,9 +22,9 @@ static map<mac_key, data_info> d;
 static map<mac_key, data_info>::iterator d_iter;
 static MYSQL *conn;                     //database connect
 static MYSQL_RES *res;                  //data save
-static MYSQL_ROW row;                   //data arr sort
-static MYSQL_FIELD *fields;             //like arr
-static u_int num_fields;                //fields count
+//static MYSQL_ROW row;                   //data arr sort
+//static MYSQL_FIELD *fields;             //like arr
+//static u_int num_fields;                //fields count
 static int ch = 1;
 static char *insert_query = (char *)malloc(sizeof(char));
 static int query_len=22;
