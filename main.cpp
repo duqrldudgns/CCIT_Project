@@ -72,7 +72,7 @@ int runQuery(){
 
 void setting(char* lecture_room, std::mutex& mutex){
     while(true){
-        sleep(10);
+        sleep(30);
         mutex.lock();
         for( d_iter= d.begin(); d_iter != d.end(); d_iter++){
 
@@ -128,12 +128,12 @@ int savedata(char* argv){
         if(rh->it_antenna_signal < limit || rh->it_length == 13 || rh->it_length == 14) continue;
         std::mutex mutex;
 
-	int rssi = 0;
-	    if (rh->it_antenna_signal<127)
-	        rssi= rh->it_antenna_signal -1;
-	    else
-	        rssi= rh->it_antenna_signal -255 -1;
-	    
+    int rssi = 0;
+        if (rh->it_antenna_signal<127)
+            rssi= rh->it_antenna_signal -1;
+        else
+            rssi= rh->it_antenna_signal -255 -1;
+
         //Data frame
         if(/*ih->type_subtype == QOS_DATA ||*/ ih->type_subtype == PROBE_REQUEST|| ih->type_subtype == NULL_FUNCTION
                 || ih->type_subtype == QOS_NULL_FUNCTION || ih->type_subtype == AUTHENTICATION || ih->type_subtype == ACTION){
@@ -143,7 +143,7 @@ int savedata(char* argv){
             auto d_iter = d.find(ih->add2);             //station
             if(d_iter ==d.end()){
                 data_info d_info;
-		d_info.pwr = rssi;     //PWR    
+                d_info.pwr = rssi;                      //PWR
                 d_info.frames=1;                        //count
                 d_info.flags= ih->flags;
 
@@ -162,7 +162,7 @@ int savedata(char* argv){
             auto d_iter = d.find(ih->add3);             //station
             if(d_iter ==d.end()){
                 data_info d_info;
-                d_info.pwr = rssi;     //PWR
+                d_info.pwr = rssi;                      //PWR
                 d_info.frames=1;                        //count
                 d_info.flags= ih->flags;
 
@@ -200,12 +200,12 @@ void closeDB(){
 }
 
 void usage() {
-    printf("syntax: mysql_insert <interface> server_ip db_id db_pw db_name channel\n");
-    printf("sample: mysql_insert wlan0 192.168.0.5 root toor project 13\n");
+    printf("syntax: mysql_insert <interface> server_ip db_id db_pw db_name lecture_room\n");
+    printf("sample: mysql_insert wlan0 192.168.0.5 root toor project 831\n");
 }
 
 int main(int argc, char* argv[]) {
-    if (argc < 6) {                //ch check add
+    if (argc < 7) {                //ch check add
         usage();
         return -1;
     }
