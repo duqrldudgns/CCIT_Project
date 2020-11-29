@@ -56,6 +56,7 @@ int runQuery(){
     if(mysql_query(conn, insert_query)) {
         printf("%s\n\n",insert_query);
 
+
         errorMsg("MySQL insert_Query empty");
     }
     else{
@@ -89,9 +90,9 @@ int sizeofint(int data)
 
 void setting(char* lecture_room, std::mutex& mutex){
     while(true){
-        sleep(300);
+        sleep(10);
         mutex.lock();
-        for( d_iter= d.begin(); d_iter != d.end(); d_iter++){
+        for(d_iter= d.begin(); d_iter != d.end(); d_iter++){
 
             sprintf(insert_query + query_len, "(NULL,'");
             query_len+=7;
@@ -109,7 +110,8 @@ void setting(char* lecture_room, std::mutex& mutex){
             int count = (*d_iter).second.frames;
             sprintf(insert_query + query_len,"','%s','%d','%d', CURRENT_TIMESTAMP),\n",lecture_room, pwr, count);
 
-            query_len=query_len + 3 + strlen(lecture_room)+ 3 + sizeofint(pwr) + 3 + sizeofint(count) + 23;
+            query_len=query_len + 3 + strlen(lecture_room) + 3 + sizeofint(pwr) + 3 + sizeofint(count) + 23;
+
             /*if ((*d_iter).second.pwr > char(0xf6)) query_len=query_len+26+2;
             else query_len=query_len+26+3;
 
