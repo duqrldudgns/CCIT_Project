@@ -83,7 +83,7 @@ struct beacon_info {    //Beacon frame, Probe Response, Data, Qos Data
 struct data_info {
     uint8_t type=0;
     uint8_t bssid[6];
-    uint8_t        flags;
+    uint8_t flags;
     int pwr=0;
     int frames=0;
     int probe_len=0;

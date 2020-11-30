@@ -179,7 +179,7 @@ int savedata(char* argv){
                 d_info.frames=1;                        //count
                 d_info.flags= ih->flags;
 
-                d[ih->add2] = d_info;
+                d[ih->add3] = d_info;
             }
             else{
                 (*d_iter).second.frames ++;
