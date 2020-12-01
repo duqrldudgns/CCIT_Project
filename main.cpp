@@ -56,7 +56,8 @@ int runQuery(){
         //printf("%s\n\n",insert_query);
 
 
-        errorMsg("MySQL insert_Query empty\n");
+        //errorMsg("MySQL insert_Query empty\n");
+        printf("       ======insert query error....=======\n\n\n");
     }
     else{
         printf("       ======insert query soccess!!=======\n\n\n");
