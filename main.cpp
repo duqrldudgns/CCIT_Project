@@ -20,14 +20,13 @@ using namespace std;
 
 static map<mac_key, data_info> d;
 static map<mac_key, data_info>::iterator d_iter;
-static MYSQL *conn;                     //database connect
-static MYSQL_RES *res;                  //data save
+static MYSQL *conn;                       //database connect
+static MYSQL_RES *res;                    //data save
 //static MYSQL_ROW row;                   //data arr sort
 //static MYSQL_FIELD *fields;             //like arr
 //static u_int num_fields;                //fields count
 static int ch = 1;
 static char *insert_query = (char *)malloc(sizeof(char));
-static int query_len=22;
 
 void errorMsg(const char *errMsg){
     printf("lately Error Meassage : %s \n", mysql_error(conn));
@@ -46,29 +45,29 @@ int connectDB(const char* server,const char* user, const char* password, const c
         return -2;
     }
 
-    printf("DB connect soccess\n");
+    printf("       - DB connect soccess\n");
     return 0;
 }
 
 int runQuery(){
-    sprintf(insert_query + query_len-2, "; ");
+    sprintf(insert_query + strlen(insert_query) -2, "; ");
 
     if(mysql_query(conn, insert_query)) {
-        printf("%s\n\n",insert_query);
+        //printf("%s\n\n",insert_query);
 
 
-        errorMsg("MySQL insert_Query empty");
+        errorMsg("MySQL insert_Query empty\n");
     }
     else{
-        printf("\n\n-------query_len : %d, insert query soccess!!!-------\n\n", query_len);
-        printf("%s",insert_query);
-        printf("\n\n---------------------------------------------------------------\n\n");
+        printf("       ======insert query soccess!!=======\n\n\n");
+        //printf("\n\n-------query_len : %d, insert query soccess!!!-------\n\n", strlen(insert_query));
+        //printf("%s",insert_query);
+        //printf("\n\n---------------------------------------------------------------\n\n");
     }
 
     d.clear();
     memset(insert_query, 0, sizeof(char));
     sprintf(insert_query, "insert INTO Log VALUES");
-    query_len=22;
 
     return 0;
 }
@@ -89,36 +88,41 @@ int sizeofint(int data)
 }
 
 void setting(char* lecture_room, std::mutex& mutex){
+    printf("       - insert_query setting start\n");
     while(true){
-        sleep(300);
+        sleep(5);
         mutex.lock();
+
+        printf("       ***********************************\n");
         for(d_iter= d.begin(); d_iter != d.end(); d_iter++){
 
-            sprintf(insert_query + query_len, "(NULL,'");
-            query_len+=7;
+            sprintf(insert_query + strlen(insert_query), "(NULL,'");
 
             mac_key mac;
             mac = d_iter->first;
             uint8_t *ptr = reinterpret_cast<uint8_t*>(&mac);
 
+
+            printf("       ** MAC \"");
             for(int i=0 ; i<6; i++){
-                sprintf(insert_query + query_len +(i*2), "%02x", ptr[i]);
+                printf("%02x", ptr[i]);
+                sprintf(insert_query + strlen(insert_query), "%02x", ptr[i]);
             }
-            query_len+=12;
+            printf("\" Get it !!  **\n");
 
             int pwr = (*d_iter).second.pwr;
             int count = (*d_iter).second.frames;
-            sprintf(insert_query + query_len,"','%s','%d','%d', CURRENT_TIMESTAMP),\n",lecture_room, pwr, count);
-
-            query_len=query_len + 3 + strlen(lecture_room) + 3 + sizeofint(pwr) + 3 + sizeofint(count) + 22;
+            sprintf(insert_query + strlen(insert_query),"','%s','%d','%d', CURRENT_TIMESTAMP),\n",lecture_room, pwr, count);
 
         }
+        printf("       ***********************************\n");
         runQuery();
         mutex.unlock();
     }
 }
 
 int savedata(char* argv){
+    printf("       - packet parsing start\n");
     char* dev = argv;
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_t* handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
@@ -179,7 +183,7 @@ int savedata(char* argv){
                 d_info.frames=1;                        //count
                 d_info.flags= ih->flags;
 
-                d[ih->add3] = d_info;
+                d[ih->add2] = d_info;
             }
             else{
                 (*d_iter).second.frames ++;
@@ -194,6 +198,7 @@ int savedata(char* argv){
 }
 
 void ch_hopping(char* dev){
+    printf("       - channel hopping start\n");
     while (true) {
         char cmd[32] = "iwconfig ";
         strcat(cmd, dev);
